@@ -7,7 +7,6 @@
 A RAG (Retrieval-Augmented Generation) assistant for both private-document QA and general AI chat.  
 It supports document upload, local vector index building, retrieval-augmented answering, and multi-turn chat with Qwen via the DashScope OpenAI-compatible API.
 
-[中文说明](README_CN.md)
 
 ## Features
 
