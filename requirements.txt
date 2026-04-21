@@ -1,0 +1,12 @@
+-i https://pypi.org/simple
+
+streamlit
+langchain
+langchain-community
+langchain-chroma
+langchain-openai
+chromadb
+pypdf
+python-docx
+docx2txt
+tiktoken
