@@ -1,3 +1,4 @@
+"""向量存储与嵌入相关的实现，兼容 DashScope/OpenAI API。"""
 from openai import OpenAI
 from langchain_chroma import Chroma
 
@@ -20,6 +21,7 @@ class DashScopeCompatibleEmbeddings:
         self.model = Settings.get_embedding_model()
 
     def embed_documents(self, texts):
+        """将一组文本转换为向量嵌入。"""
         embeddings = []
         for text in texts:
             content = text if isinstance(text, str) else str(text)
@@ -40,10 +42,12 @@ class DashScopeCompatibleEmbeddings:
 
 
 def build_embeddings():
+    """构建嵌入生成器实例。"""
     return DashScopeCompatibleEmbeddings()
 
 
 def build_vector_store(chunks):
+    """基于文本块构建向量数据库。"""
     embeddings = build_embeddings()
     db = Chroma.from_documents(
         documents=chunks,
@@ -54,6 +58,7 @@ def build_vector_store(chunks):
 
 
 def load_retriever():
+    """加载向量检索器用于相似性检索。"""
     embeddings = build_embeddings()
     db = Chroma(
         embedding_function=embeddings,

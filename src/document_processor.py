@@ -1,3 +1,6 @@
+"""文档处理：加载原始文档并将其分割成文本块以供向量化处理。
+
+添加了模块级注释，描述该模块的职责以及每个函数的行为。"""
 from pathlib import Path
 from typing import List
 
@@ -13,6 +16,7 @@ from src.config import Settings
 
 
 def load_document(file_path: str) -> List[Document]:
+    """根据文件后缀加载对应的文档对象列表。"""
     suffix = Path(file_path).suffix.lower()
     if suffix == ".pdf":
         return PyPDFLoader(file_path).load()
@@ -24,6 +28,7 @@ def load_document(file_path: str) -> List[Document]:
 
 
 def split_documents(documents: List[Document]) -> List[Document]:
+    """将文档列表按设置的块大小和重叠进行分块，返回文本块列表。"""
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=Settings.get_chunk_size(),
         chunk_overlap=Settings.get_chunk_overlap(),
