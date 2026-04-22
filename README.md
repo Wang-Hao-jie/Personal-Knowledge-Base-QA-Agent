@@ -6,7 +6,6 @@
 
 基于 RAG（Retrieval-Augmented Generation）的智能问答项目，支持上传私有文档构建本地向量库进行检索增强问答，也支持通用 AI 多轮对话。
 
-[English README](README_EN.md)
 
 ## 功能特性
 
