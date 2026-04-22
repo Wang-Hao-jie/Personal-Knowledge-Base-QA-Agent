@@ -9,13 +9,22 @@ from src.document_processor import load_document, split_documents
 from src.qa_chain import create_qa_chain, stream_chat, stream_question
 from src.vector_store import build_vector_store
 
+"""Streamlit Web 应用主程序
+
+提供个人知识库问答 Agent 的 Web 界面，支持两种模式：
+1. 知识库问答：上传文档构建向量库，基于检索增强生成（RAG）回答问题
+2. AI 对话：纯对话模式，支持多轮对话和思考过程展示
+"""
+
 
 def ensure_dirs():
+    """确保必要的目录存在，包括上传目录和向量数据库目录。"""
     Path("data/uploads").mkdir(parents=True, exist_ok=True)
     Path(Settings.get_vector_db_dir()).mkdir(parents=True, exist_ok=True)
 
 
 def save_upload(uploaded_file) -> str:
+    """保存上传的文件到本地目录，返回文件路径。"""
     ensure_dirs()
     target = Path("data/uploads") / uploaded_file.name
     target.write_bytes(uploaded_file.getbuffer())
@@ -23,6 +32,7 @@ def save_upload(uploaded_file) -> str:
 
 
 def build_knowledge_base(uploaded_file):
+    """从上传的文件构建知识库向量数据库，返回生成的文本块数量。"""
     file_path = save_upload(uploaded_file)
     documents = load_document(file_path)
     chunks = split_documents(documents)
@@ -31,6 +41,7 @@ def build_knowledge_base(uploaded_file):
 
 
 def clear_knowledge_base():
+    """清空向量数据库目录并重新创建空目录。"""
     db_dir = Path(Settings.get_vector_db_dir())
     if db_dir.exists():
         shutil.rmtree(db_dir)
@@ -38,6 +49,7 @@ def clear_knowledge_base():
 
 
 def check_env():
+    """检查 API Key 是否已配置，未配置则显示错误信息。"""
     if not Settings.get_api_key():
         st.error("未检测到 DASHSCOPE_API_KEY（或 OPENAI_API_KEY），请先配置环境变量后重试。")
         return False
@@ -45,6 +57,7 @@ def check_env():
 
 
 def main():
+    """主函数：初始化 Streamlit 应用界面并处理用户交互。"""
     st.set_page_config(page_title="个人知识库问答 Agent", page_icon="🤖", layout="wide")
     st.title("个人知识库问答 Agent")
     st.caption("上传文档后构建向量库，再输入问题进行检索增强问答。")
@@ -73,6 +86,43 @@ def main():
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
+
+    if mode == "AI 对话":
+        st.subheader("AI 对话")
+        if st.button("清空对话历史"):
+            st.session_state.chat_history = []
+            st.success("已清空对话历史。")
+
+        for item in st.session_state.chat_history:
+            with st.chat_message(item["role"]):
+                st.write(item["content"])
+
+        user_message = st.chat_input("请输入你想和 AI 对话的内容")
+        if user_message:
+            st.session_state.chat_history.append({"role": "user", "content": user_message})
+            with st.chat_message("user"):
+                st.write(user_message)
+
+            reasoning_placeholder = st.empty()
+            with st.chat_message("assistant"):
+                answer_placeholder = st.empty()
+                messages = [{"role": "system", "content": "你是一个专业、友好的 AI 助手。"}]
+                messages.extend(st.session_state.chat_history)
+                final_answer = ""
+                try:
+                    for step in stream_chat(messages):
+                        if show_reasoning and step["reasoning"]:
+                            with reasoning_placeholder.expander("思考过程（模型返回）", expanded=False):
+                                st.code(step["reasoning"])
+                        final_answer = step["answer"]
+                        answer_placeholder.write(final_answer or "生成中...")
+                except Exception as e:
+                    st.error(f"AI 对话失败：{e}")
+                    return
+            st.session_state.chat_history.append(
+                {"role": "assistant", "content": final_answer or "未生成有效回复"}
+            )
+        return
 
     if mode == "AI 对话":
         st.subheader("AI 对话")

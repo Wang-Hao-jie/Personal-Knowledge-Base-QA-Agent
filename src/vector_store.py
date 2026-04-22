@@ -33,6 +33,7 @@ class DashScopeCompatibleEmbeddings:
         return embeddings
 
     def embed_query(self, text):
+        """将查询文本转换为向量嵌入。"""
         content = text if isinstance(text, str) else str(text)
         resp = self.client.embeddings.create(
             model=self.model,
